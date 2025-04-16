@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DevDeck Enhanced</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <h1>DevDeck Enhanced</h1>
+  
+  <div class="creator">
+    <input type="text" id="tagInput" placeholder="Tag (e.g. js, dom)" />
+    <button id="suggestTagBtn">Suggest Tag</button>
+    <select id="tagFilter"></select>
+    <input type="text" id="frontInput" placeholder="Front text" />
+    <input type="text" id="backInput" placeholder="Back text" />
+    <button id="addCardBtn">Add Card</button>
+  </div>
+  
+  <!-- Voice Settings -->
+  <div class="voice-settings">
+    <label for="ttsMode">TTS Mode:</label>
+    <select id="ttsMode">
+      <option value="both">Both</option>
+      <option value="front">Front Only</option>
+      <option value="back">Back Only</option>
+      <option value="none">None</option>
+    </select>
+    <label for="voiceSelect">Voice:</label>
+    <select id="voiceSelect"></select>
+    <label for="voiceSpeed">Speed:</label>
+    <input type="range" id="voiceSpeed" min="0.5" max="2" step="0.1" value="1" />
+  </div>
+  
+  <!-- Session Controls -->
+  <div class="session-controls">
+    <button id="startSessionBtn">Start Custom Session</button>
+    <button id="dailyChallengeBtn">Daily Challenge</button>
+    <div id="sessionTimer"></div>
+  </div>
+  
+  <!-- Progress Bar -->
+  <div id="progressBarContainer">
+    <div id="progressBar"></div>
+  </div>
+  
+  <!-- XP Bar: Shows correct-answer progress -->
+  <div id="xpBarContainer">
+    <div id="xpBar"></div>
+  </div>
+
+  
+  <!-- Main Flashcard Container -->
+  <div id="card-container" class="card-container"></div>
+  
+  <!-- Deck Browser Mode -->
+  <button id="toggleBrowserBtn">Toggle Deck Browser</button>
+  <div id="deckBrowser" class="hidden"></div>
+  
+  <!-- Stats Panel -->
+  <div id="statsPanel">
+    <p id="reviewStats"></p>
+    <p id="xpDisplay"></p>
+    <p id="achievementsDisplay"></p>
+  </div>
+  
+  <!-- Heatmap Calendar (for review history visualization) -->
+  <div id="heatmapCalendar"></div>
+  
+  <div class="controls">
+    <button id="prevBtn">← Prev</button>
+    <button id="flipBtn">Flip</button>
+    <button id="nextBtn">Next →</button>
+    <button id="shuffleBtn">Shuffle</button>
+    <button id="resetBtn">Reset Deck</button>
+    <div class="data-controls">
+      <button id="exportBtn">⬇️ Export Deck</button>
+      <input type="file" id="importInput" accept=".json" />
+    </div>
+    <button id="darkModeToggle">🌓</button>
+    <button id="ttsToggle">🔇 TTS Off</button>
+  </div>
+  
+  <script src="main.js"></script>
+</body>
+</html>
