@@ -1,3 +1,4 @@
+WIP!
 Below is a comprehensive explanation of the various logics implemented in your application. The system is built around a gamified flashcard mechanism using JavaScript, combining state persistence, spaced-repetition elements, text-to-speech (TTS), and a rich set of interactive controls. Each component of the code is designed to work together to provide an engaging learning experience. Here’s a breakdown of the overall architecture and individual components:
 
 1. Data Initialization and Persistence
