@@ -8,6 +8,7 @@
 </head>
 <body>
   <h1>DevDeck Enhanced</h1>
+  <div id="streakBanner" class="hidden"></div>
   
   <div class="creator">
     <input type="text" id="tagInput" placeholder="Tag (e.g. js, dom)" />
@@ -37,7 +38,15 @@
   <div class="session-controls">
     <button id="startSessionBtn">Start Custom Session</button>
     <button id="dailyChallengeBtn">Daily Challenge</button>
+    <button id="timeAttackBtn">Time Attack</button>
     <div id="sessionTimer"></div>
+  </div>
+
+  <div id="statsPanel">
+    <p id="reviewStats"></p>
+    <p id="xpDisplay"></p>
+    <p id="achievementsDisplay"></p>
+    <p id="timeAttackBest"></p>
   </div>
   
   <!-- Progress Bar -->
@@ -63,8 +72,8 @@
     <p id="reviewStats"></p>
     <p id="xpDisplay"></p>
     <p id="achievementsDisplay"></p>
+    <p id="badgesDisplay"></p>
   </div>
-  
   <!-- Heatmap Calendar (for review history visualization) -->
   <div id="heatmapCalendar"></div>
   

@@ -448,6 +448,28 @@ const defaultDeck = [
   
   let currentCardIndex = parseInt(localStorage.getItem("devdeck-current-index")) || 0;
   if (currentCardIndex >= deck.length) currentCardIndex = 0;
+
+  // --- BADGES: per‑tag XP and themed unlocks ---
+const badgesDisplay = document.getElementById("badgesDisplay");
+const badgeConfig = {
+  js: [ { xp:50, name: 'JS Jedi' }, { xp:100, name: 'JS Master' } ],
+  dom: [ { xp:50, name: 'DOM Dominator' }, { xp:100, name: 'DOM Deity' } ],
+  async: [ { xp:50, name: 'Async Ace' }, { xp:100, name: 'Async Architect' } ],
+  es6: [ { xp:50, name: 'ES6 Expert' }, { xp:100, name: 'ES6 Evangelist' } ],
+  react: [ { xp:50, name: 'React Rockstar' }, { xp:100, name: 'React Ruler' } ],
+  array: [ { xp:50, name: 'Array Artisan' }, { xp:100, name: 'Array Architect' } ],
+  performance: [ { xp:50, name: 'Performance Pro' }, { xp:100, name: 'Performance Pioneer' } ],
+  quirks: [ { xp:50, name: 'Quirk Conqueror' }, { xp:100, name: 'Quirk Quintessence' } ]
+};
+let tagXp = JSON.parse(localStorage.getItem('devdeck-tagXp')) || {};
+let badges = JSON.parse(localStorage.getItem('devdeck-badges')) || [];
+// ensure all existing tags have an entry
+new Set(deck.map(c=>c.tag)).forEach(tag => { if (!tagXp[tag]) tagXp[tag] = 0; });
+
+function renderBadges() {
+  badgesDisplay.textContent = badges.length ? '🏅 Badges: ' + badges.join(', ') : '';
+}
+renderBadges();
   
   // State variables
   let ttsEnabled = localStorage.getItem("tts") === "true";
@@ -500,6 +522,69 @@ const defaultDeck = [
   const startSessionBtn = document.getElementById("startSessionBtn");
   const dailyChallengeBtn = document.getElementById("dailyChallengeBtn");
   const toggleBrowserBtn = document.getElementById("toggleBrowserBtn");
+
+  const timeAttackBtn = document.getElementById("timeAttackBtn");
+const timeAttackBestDisplay = document.getElementById("timeAttackBest");
+let bestTimeAttack = parseInt(localStorage.getItem("devdeck-bestTimeAttack")) || 0;
+timeAttackBestDisplay.textContent = bestTimeAttack
+  ? `Time Attack Best: ${bestTimeAttack}`
+  : '';
+let timeAttackActive = false;
+let timeAttackTimer = null;
+let timeAttackTimeLeft = 60;
+let timeAttackScore = 0;
+
+function startTimeAttack() {
+  timeAttackActive = true;
+  timeAttackTimeLeft = 60;
+  timeAttackScore = 0;
+  sessionTimerDisplay.textContent = `Time Attack: ${timeAttackTimeLeft}s | Score: ${timeAttackScore}`;
+  clearInterval(timeAttackTimer);
+  timeAttackTimer = setInterval(() => {
+    timeAttackTimeLeft--;
+    sessionTimerDisplay.textContent = `Time Attack: ${timeAttackTimeLeft}s | Score: ${timeAttackScore}`;
+    if (timeAttackTimeLeft <= 0) endTimeAttack();
+  }, 1000);
+}
+
+function endTimeAttack() {
+  clearInterval(timeAttackTimer);
+  timeAttackActive = false;
+  alert(`⏱ Time Attack over! You scored ${timeAttackScore} points.`);
+  if (timeAttackScore > bestTimeAttack) {
+    bestTimeAttack = timeAttackScore;
+    localStorage.setItem("devdeck-bestTimeAttack", bestTimeAttack);
+    timeAttackBestDisplay.textContent = `Time Attack Best: ${bestTimeAttack}`;
+    alert(`🎉 New personal best: ${bestTimeAttack}!`);
+  }
+  sessionTimerDisplay.textContent = '';
+}
+
+timeAttackBtn.addEventListener("click", startTimeAttack);
+  // STREAK: get & update streak data
+const streakBanner = document.getElementById("streakBanner");
+function updateStreak() {
+  const today = new Date().toISOString().slice(0,10);
+  let last = localStorage.getItem("devdeck-last-date");
+  let streak = parseInt(localStorage.getItem("devdeck-streak")) || 0;
+  if (last === today) {
+    // already counted today
+  } else {
+    // new day!
+    if (last === new Date(new Date(today) - 864e5).toISOString().slice(0,10)) {
+      streak++;
+    } else {
+      streak = 1;
+    }
+    localStorage.setItem("devdeck-streak", streak);
+    localStorage.setItem("devdeck-last-date", today);
+  }
+  streakBanner.textContent = `🔥 ${streak}-day streak!`;
+  streakBanner.classList.remove("hidden");
+}
+// call once on load
+updateStreak();
+
   
   // Voice settings elements
   const ttsModeSelect = document.getElementById("ttsMode");
@@ -611,6 +696,8 @@ const defaultDeck = [
     localStorage.setItem("xp", xp);
     localStorage.setItem("achievements", JSON.stringify(achievements));
     localStorage.setItem("reviewHistory", JSON.stringify(reviewHistory));
+    localStorage.setItem("devdeck-tagXp", JSON.stringify(tagXp));
+    localStorage.setItem("devdeck-badges", JSON.stringify(badges));
   }
   
   // --- Filtering and Rendering Helpers ---
@@ -646,6 +733,29 @@ const defaultDeck = [
     xpDisplay.textContent = `XP: ${xp}`;
     achievementsDisplay.textContent = achievements.length ? "Achievements: " + achievements.join(", ") : "";
   }
+
+  // --- HEATMAP: daily review calendar for past 30 days ---
+const heatmapContainer = document.getElementById("heatmapCalendar");
+function renderHeatmap() {
+  const today = new Date();
+  const oneDay = 24*3600*1000;
+  let html = "";
+  // build last 30 days, oldest first
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(today - i*oneDay);
+    const key = d.toISOString().slice(0,10);
+    const count = reviewHistory[key] || 0;
+    let cls = "empty";
+    if (count >= 4) cls = "high";
+    else if (count >= 2) cls = "med";
+    else if (count === 1) cls = "low";
+    html += `<div class="heatday ${cls}" title="${key}: ${count} reviews">
+               <span>${d.getDate()}</span>
+             </div>`;
+  }
+  heatmapContainer.innerHTML = html;
+}
+
   
   function updateReviewHistory() {
     const today = new Date().toISOString().split("T")[0];
@@ -717,21 +827,40 @@ const defaultDeck = [
       // Ensure the card is flipped to show the answer
       flashcard.classList.add("flipped");
       
-      const sim = similarity(userAnswer, correctAnswer);
+          const sim = similarity(userAnswer, correctAnswer);
+     // 1) locate the actual card in your master deck
+      const actual = deck.find(c => c.front === card.front && c.back === card.back);
+      // 2) always record that you reviewed it
+      actual.reviewCount++;
+      actual.lastReviewed = new Date().toISOString();
+
       if (sim >= 0.7) {
         feedbackDiv.textContent = "Correct!";
-        const actual = deck.find(c => c.front === card.front && c.back === card.back);
         if (actual.level < 5) actual.level++;
         correctAnswers++;
-        totalAnswered++;
         xp += 5;
+        // badge/tag XP logic
+        const tag = card.tag || 'untagged';
+        tagXp[tag] = (tagXp[tag] || 0) + 5;
+        (badgeConfig[tag] || []).forEach(b => {
+          if (tagXp[tag] >= b.xp && !badges.includes(b.name)) {
+            badges.push(b.name);
+            alert(`🏅 You unlocked the badge: ${b.name}!`);
+          }
+        });
       } else {
         feedbackDiv.textContent = "Incorrect. The correct answer is: " + card.back;
-        const actual = deck.find(c => c.front === card.front && c.back === card.back);
         actual.level = 1;
-        totalAnswered++;
-        xp = Math.max(xp - 3, 0);
+                xp = Math.max(xp - 3, 0);
       }
+      totalAnswered++;
+      // if in time attack, tally corrects
+if (timeAttackActive) {
+  if (sim >= 0.7) timeAttackScore++;
+  sessionTimerDisplay.textContent = `Time Attack: ${timeAttackTimeLeft}s | Score: ${timeAttackScore}`;
+}
+      // 3) persist *all* state in one go
+      saveState();
       updateReviewHistory();
       checkAchievements();
       nextCardBtn.classList.remove("hidden");
@@ -841,6 +970,7 @@ const defaultDeck = [
     frontInput.value = "";
     backInput.value = "";
     tagInput.value = "";
+    renderTagFilter();
     renderView();
   });
   
@@ -933,6 +1063,7 @@ const defaultDeck = [
           if (!card.reviewCount) card.reviewCount = 0;
         });
         currentCardIndex = 0;
+        renderTagFilter();
         renderView();
         alert("Deck imported successfully.");
       } catch (err) {
@@ -982,6 +1113,7 @@ const defaultDeck = [
     }
     renderProgressBar();
     renderStats();
+    renderHeatmap();
     saveState();
   }
   
